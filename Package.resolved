@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "SDL",
+        "repositoryURL": "https://github.com/PureSwift/SDL.git",
+        "state": {
+          "branch": "master",
+          "revision": "b25b08356b22258631e1d0d646c6a4aad3182fa6",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

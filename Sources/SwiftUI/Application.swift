@@ -27,6 +27,8 @@ public final class Application {
     
     internal private(set) var _windows = WeakArray<Window>()
     
+    internal lazy var eventEnvironment = EventEnvironment()
+    
     // MARK: - Methods
     
     public func run() throws {
@@ -51,30 +53,28 @@ public final class Application {
             // poll events
             var maximumFramesPerSecond = 1
             for window in windows {
-                
                 let framesPerSecond = try window.window.displayMode().refreshRate
                 if framesPerSecond > maximumFramesPerSecond {
                     maximumFramesPerSecond = framesPerSecond
                 }
-                
-                let maximumFrameTime = UInt32(1000 / framesPerSecond)
-                
-                var shouldPoll = true
-                while SDL_GetTicks() - startTime < maximumFrameTime, shouldPoll {
-                    shouldPoll = SDL_PollEvent(&sdlEvent) != 0
-                    
-                }
             }
+            
+            let maximumFrameTime = UInt32(1000 / maximumFramesPerSecond)
+            
+            var shouldPoll = true
+            while SDL_GetTicks() - startTime < maximumFrameTime, shouldPoll {
+                shouldPoll = SDL_PollEvent(&sdlEvent) != 0
+                eventEnvironment.recieveEvent(&sdlEvent)
+            }
+            eventEnvironment.dispatchEvents()
             
             // run main loop
             let maximumFrameDuration = 1.0 / TimeInterval(maximumFramesPerSecond)
             runloop.run(mode: .default, before: frameStart + maximumFrameDuration)
             
             // sleep to save energy
-            let maximumFrameTime = UInt32(1000 / maximumFramesPerSecond)
-            let frameTime = SDL_GetTicks() - startTime
-            if frameTime < maximumFrameTime {
-                SDL_Delay(maximumFrameTime - frameTime) // sleep for remainder of frame
+            if SDL_GetTicks() - startTime < maximumFrameTime {
+                SDL_Delay(maximumFrameTime - SDL_GetTicks() - startTime) // sleep for remainder of frame
             }
         }
     }
@@ -82,5 +82,15 @@ public final class Application {
     internal func windowCreated(_ window: Window) {
         
         self._windows.append(window)
+    }
+    
+    public func quit() {
+        
+        self.isRunning = false
+    }
+    
+    internal func lowMemory() {
+        
+        
     }
 }

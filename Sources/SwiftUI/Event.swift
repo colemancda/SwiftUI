@@ -9,46 +9,31 @@ import Foundation
 import CSDL2
 import SDL
 
-public struct Event {
+public enum Event {
     
-    public let timestamp: UInt
-    
-    public let data: Data
+    case quit
+    case lowMemory
+    case touch(Touch)
+    //case mouse(ScreenInputEvent, CGPoint)
+    //case mouseWheel(CGSize)
+    //case window(WindowEvent)
 }
-
+/*
 internal extension Event {
     
-    init?(sdlEvent: inout SDL_Event) {
-        
-        self.timestamp = UInt(sdlEvent.common.timestamp)
+    init?(_ sdlEvent: inout SDL_Event) {
         
         let eventType = SDL_EventType(rawValue: sdlEvent.type)
-        
         switch eventType {
-            
         case SDL_QUIT,
              SDL_APP_TERMINATING:
-            
-            self.data = .quit
-            
+            self = .quit
+        case SDL_APP_LOWMEMORY:
+            self = .lowMemory
         case SDL_FINGERDOWN,
              SDL_FINGERUP,
              SDL_FINGERMOTION:
-            
-            let screenEvent: ScreenInputEvent
-            
-            switch eventType {
-            case SDL_FINGERDOWN: screenEvent = .down
-            case SDL_FINGERUP: screenEvent = .up
-            case SDL_FINGERMOTION: screenEvent = .motion
-            default: return nil
-            }
-            
-            let screenLocation = CGPoint(x: CGFloat(sdlEvent.button.x),
-                                         y: CGFloat(sdlEvent.button.y))
-            
-            self.data = .touch(screenEvent, screenLocation)
-            
+            self = .touch(Touch(&sdlEvent.tfinger))
         case SDL_MOUSEBUTTONDOWN,
              SDL_MOUSEBUTTONUP,
              SDL_MOUSEMOTION:
@@ -73,6 +58,8 @@ internal extension Event {
             
         case SDL_MOUSEWHEEL:
             
+            sdlEvent.wheel.
+            
             let translation = CGSize(width: CGFloat(sdlEvent.wheel.x),
                                      height: CGFloat(sdlEvent.wheel.y))
             
@@ -94,74 +81,139 @@ internal extension Event {
             
             self.data = .window(windowEvent)
             
-        case SDL_APP_LOWMEMORY:
-            
-            self.data = .lowMemory
-            
-            /*
-             case SDL_KEYUP,
-             SDL_KEYDOWN:
-             
-             let state: KeyState
-             
-             switch Int32(sdlEvent.key.state) {
-             
-             case SDL_PRESSED:
-             state = .pressed
-             
-             case SDL_RELEASED:
-             state = .released
-             
-             default:
-             fatalError("Invalid key state \(sdlEvent.key.state)")
-             }
-             
-             sdlEvent.key.keysym.keyCode
-             */
         default:
-            
             return nil
         }
     }
 }
+*/
+public struct Touch {
+    
+    public let timestamp: UInt
+    public let movement: Movement
+    public let device: Int
+    
+    /**< Normalized in the range 0...1 */
+    public var x: Float
+    
+    /**< Normalized in the range 0...1 */
+    public var y: Float
+    
+    /**< Normalized in the range -1...1 */
+    public var dx: Float
+    
+    /**< Normalized in the range -1...1 */
+    public var dy: Float
+    
+    /**< Normalized in the range 0...1 */
+    public var pressure: Float
+}
 
-public extension Event {
+internal extension Touch {
     
-    enum Data {
+    init(_ sdlEvent: inout SDL_TouchFingerEvent) {
         
-        case quit
-        case mouse(ScreenInputEvent, CGPoint)
-        case mouseWheel(CGSize)
-        case touch(ScreenInputEvent, CGPoint)
-        case window(WindowEvent)
-        case lowMemory
+        self.timestamp = UInt(sdlEvent.timestamp)
+        
+        let eventType = SDL_EventType(rawValue: sdlEvent.type)
+        switch eventType {
+        case SDL_FINGERDOWN:
+            movement = .down
+        case SDL_FINGERUP:
+            movement = .up
+        case SDL_FINGERMOTION:
+            movement = .motion
+        default:
+            fatalError()
+        }
+        
+        self.device = Int(sdlEvent.touchId)
+        self.pressure = sdlEvent.pressure
+        self.x = sdlEvent.x
+        self.y = sdlEvent.y
+        self.dx = sdlEvent.dx
+        self.dy = sdlEvent.dy
     }
+}
+
+public extension Touch {
     
-    enum ScreenInputEvent {
-        
-        case down
+    enum Movement {
         case up
+        case down
         case motion
     }
+}
+
+public enum MouseEvent {
     
-    enum WindowEvent {
-        
-        case sizeChange(window: UInt)
-        case focusChange(window: UInt)
-    }
+    case button(MouseButtonEvent)
     
-    enum KeyState {
+}
+
+public struct MouseButtonEvent {
+    
+    public let timestamp: UInt
+    public let movement: Movement
+    public let device: UInt
+    public let window: UInt
+    public let button: UInt8
+}
+
+internal extension MouseButtonEvent {
+    
+    init(_ sdlEvent: inout SDL_MouseButtonEvent) {
         
-        case pressed
-        case released
+        self.timestamp = UInt(sdlEvent.timestamp)
+        
+        let eventType = SDL_EventType(rawValue: sdlEvent.type)
+        switch eventType {
+        case SDL_MOUSEBUTTONUP:
+            movement = .down
+        case SDL_MOUSEBUTTONDOWN:
+            movement = .up
+        default:
+            fatalError()
+        }
+        
+        self.device = UInt(sdlEvent.which)
+        self.window = UInt(sdlEvent.windowID)
+        self.button = sdlEvent.button
     }
 }
 
-internal final class EventDispatcher {
+public extension MouseButtonEvent {
     
-    func recieveEvent(_ event: inout Event) {
+    enum Movement {
+        case up
+        case down
+    }
+}
+
+internal final class EventEnvironment {
+    
+    init() { }
+    
+    var application: Application { return .shared }
+    
+    private(set) var eventQueue = [Event]()
+    
+    func recieveEvent(_ sdlEvent: inout SDL_Event) {
+        //guard let event = Event(&sdlEvent) else { return }
+        //eventQueue.append(event)
+    }
+    
+    func dispatchEvents() {
+        
+        for event in eventQueue {
+            handleEvent(event)
+        }
+        
+        eventQueue.removeAll()
+    }
+    
+    func handleEvent(_ event: Event) {
         
         
     }
 }
-

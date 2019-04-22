@@ -11,8 +11,6 @@ import SDL
 
 public enum Event {
     
-    case quit
-    case lowMemory
     case touch(Touch)
     //case mouse(ScreenInputEvent, CGPoint)
     //case mouseWheel(CGSize)

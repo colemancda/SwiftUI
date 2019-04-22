@@ -24,10 +24,12 @@ public struct View {
     
     public init(frame: Frame,
                 subviews: [View] = [],
-                backgroundColor: Color = .white) {
+                backgroundColor: Color = .white,
+                draw: (() -> ())? = nil) {
         
         self.frame = frame
         self.subviews = subviews
         self.backgroundColor = backgroundColor
+        self.draw = draw
     }
 }

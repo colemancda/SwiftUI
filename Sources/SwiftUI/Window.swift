@@ -16,7 +16,7 @@ public final class Window {
     internal let renderer: SDLRenderer
     
     public var identifier: UInt {
-        return self.window.identifier
+        return window.identifier
     }
     
     public var size: (width: Int, height: Int) {

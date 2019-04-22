@@ -5,7 +5,7 @@
 //  Created by Alsey Coleman Miller on 4/22/19.
 //
 
-public struct Color {
+public struct Color: Equatable, Hashable {
     
     public var red: UInt8
     
@@ -29,15 +29,28 @@ public struct Color {
 
 public extension Color {
     
+    static func random(alpha: UInt8 = .max) -> Color {
+        
+        return Color(
+            red: .random(in: .min ... .max),
+            green: .random(in: .min ... .max),
+            blue: .random(in: .min ... .max),
+            alpha: alpha
+        )
+    }
+}
+
+public extension Color {
+    
     static var clear: Color { return Color(red: 0, green: 0, blue: 0, alpha: 0) }
     
     static var black: Color { return Color(red: 0, green: 0, blue: 0) }
     
-    static var white: Color { return Color(red: 1, green: 1, blue: 1) }
+    static var white: Color { return Color(red: .max, green: .max, blue: .max) }
     
-    static var red: Color { return Color(red: 1, green: 0, blue: 0) }
+    static var red: Color { return Color(red: .max, green: 0, blue: 0) }
     
-    static var green: Color { return Color(red: 0, green: 1, blue: 0) }
+    static var green: Color { return Color(red: 0, green: .max, blue: 0) }
     
-    static var blue: Color { return Color(red: 0, green: 0, blue: 1) }
+    static var blue: Color { return Color(red: 0, green: 0, blue: .max) }
 }

@@ -19,6 +19,13 @@ public final class Application {
     
     // MARK: - Properties
     
+    public private(set) var window: Window?
+    
+    public var didLaunch: (() throws -> (Window)) = {
+        return try Window(title: "",
+                          frame: (x: .centered, y: .centered, width: 640, height: 480))
+    }
+    
     internal private(set) var isRunning = false
     
     public var windows: [Window] {
@@ -40,6 +47,8 @@ public final class Application {
         
         try SDL.initialize(subSystems: [.video])
         defer { SDL.quit() }
+        
+        window = try didLaunch()
         
         let runloop = RunLoop.current
         
@@ -73,8 +82,9 @@ public final class Application {
             runloop.run(mode: .default, before: frameStart + maximumFrameDuration)
             
             // sleep to save energy
-            if SDL_GetTicks() - startTime < maximumFrameTime {
-                SDL_Delay(maximumFrameTime - SDL_GetTicks() - startTime) // sleep for remainder of frame
+            let frameDuration = SDL_GetTicks() - startTime
+            if frameDuration < maximumFrameTime {
+                SDL_Delay(maximumFrameTime - frameDuration) // sleep for remainder of frame
             }
         }
     }
@@ -91,6 +101,8 @@ public final class Application {
     
     internal func lowMemory() {
         
-        
+        for window in windows {
+            window.lowMemory()
+        }
     }
 }

@@ -7,6 +7,9 @@ let package = Package(
         .library(
             name: "SwiftUI",
             targets: ["SwiftUI"]),
+        .executable(
+            name: "SwiftUIDemo",
+            targets: ["SwiftUIDemo"]),
     ],
     dependencies: [
         .package(
@@ -17,6 +20,9 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftUI",
-            dependencies: ["SDL"])
+            dependencies: ["SDL"]),
+        .target(
+            name: "SwiftUIDemo",
+            dependencies: ["SwiftUI"])
     ]
 )

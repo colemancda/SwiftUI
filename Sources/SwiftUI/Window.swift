@@ -15,6 +15,18 @@ public final class Window {
     
     internal let renderer: SDLRenderer
     
+    public var identifier: UInt {
+        return self.window.identifier
+    }
+    
+    public var size: (width: Int, height: Int) {
+        return window.size
+    }
+    
+    public var lowMemory: (() -> ()) = { }
+    
+    public var view: View
+    
     // MARK: - Initialization
     
     public init(title: String = "",
@@ -25,10 +37,19 @@ public final class Window {
         
         self.window = try SDLWindow(title: title,
                                     frame: frame,
-                                    options: [.allowRetina, .opengl, .resizable])
+                                    options: [.allowRetina, .opengl, .resizable, .shown])
         
         self.renderer = try SDLRenderer(window: window, options: [.accelerated])
         try self.renderer.setDrawColor((0x00, 0x00, 0x00, 0xFF))
+        
+        self.view = View(frame:
+            Frame(origin: .zero,
+                  size: Size(
+                    width: frame.width,
+                    height: frame.height
+                )
+            )
+        )
         
         // inform app
         Application.shared.windowCreated(self)

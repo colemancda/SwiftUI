@@ -8,28 +8,46 @@
 import SDL
 
 /// View
-public struct View {
+open class View {
     
     // MARK: - Properties
     
     public var frame: Frame
     
-    public var subviews: [View]
+    public var subviews = [View]()
     
-    public var backgroundColor: Color
+    public var backgroundColor: Color = .white
     
-    public var draw: (() -> ())?
+    internal let layerCache = LayerCache()
     
     // MARK: - Initialization
     
-    public init(frame: Frame,
-                subviews: [View] = [],
-                backgroundColor: Color = .white,
-                draw: (() -> ())? = nil) {
+    public init(frame: Frame = .zero) {
         
         self.frame = frame
-        self.subviews = subviews
-        self.backgroundColor = backgroundColor
-        self.draw = draw
     }
+}
+
+internal final class LayerCache {
+    
+    internal init() { }
+    
+    // 1x1 layer for background color texture
+    var backgroundColorLayer: Layer?
+    
+    var drawableLayer: Layer?
+}
+
+internal extension Layer {
+    
+    convenience init(color: Color, renderer: SDLRenderer) throws {
+        
+        try self.init(width: 1, height: 1, scale: 1, renderer: renderer)
+        self.texture
+    }
+}
+
+protocol Drawable {
+    
+    func draw(with layer: Layer)
 }

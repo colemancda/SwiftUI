@@ -34,8 +34,6 @@ public final class Application {
     
     internal private(set) var _windows = WeakArray<Window>()
     
-    internal lazy var eventEnvironment = EventEnvironment()
-    
     // MARK: - Methods
     
     public func run() throws {
@@ -73,9 +71,9 @@ public final class Application {
             var shouldPoll = true
             while SDL_GetTicks() - startTime < maximumFrameTime, shouldPoll {
                 shouldPoll = SDL_PollEvent(&sdlEvent) != 0
-                eventEnvironment.recieveEvent(&sdlEvent)
+                //eventEnvironment.recieveEvent(&sdlEvent)
             }
-            eventEnvironment.dispatchEvents()
+            //eventEnvironment.dispatchEvents()
             
             // run main loop
             let maximumFrameDuration = 1.0 / TimeInterval(maximumFramesPerSecond)

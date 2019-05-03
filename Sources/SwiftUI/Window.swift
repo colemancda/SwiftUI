@@ -43,8 +43,9 @@ public final class Window {
         try self.renderer.setDrawColor((0x00, 0x00, 0x00, 0xFF))
         
         self.view = View(frame:
-            Frame(origin: .zero,
-                  size: Size(
+            Frame(
+                origin: .zero,
+                size: Size(
                     width: frame.width,
                     height: frame.height
                 )

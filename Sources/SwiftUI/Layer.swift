@@ -40,7 +40,7 @@ public final class Layer {
     
     // MARK: - Methods
     
-    public func setSize(width: Int, height: Int) throws {
+    internal func setSize(width: Int, height: Int) throws {
         
         self.texture = try Texture(width: width,
                                    height: height,
@@ -48,7 +48,7 @@ public final class Layer {
                                    renderer: renderer)
     }
     
-    public func setScale(_ scale: Float) throws {
+    internal func setScale(_ scale: Float) throws {
         
         self.texture = try Texture(width: size.width,
                                    height: size.height,
@@ -56,7 +56,7 @@ public final class Layer {
                                    renderer: renderer)
     }
     
-    public func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
+    internal func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
         
         return try texture.texture.withUnsafeMutableBytes(body)
     }
@@ -95,6 +95,11 @@ internal extension Layer {
                 height: nativeSize.height
             )
             try texture.setBlendMode([.alpha])
+        }
+        
+        public func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
+            
+            return try texture.withUnsafeMutableBytes(body)
         }
     }
 }

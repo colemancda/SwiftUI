@@ -26,7 +26,7 @@ open class View {
     }
     
     public var isHidden: Bool {
-        return alpha > 0.0
+        return alpha == 0.0
     }
     
     internal private(set) var textureCache = TextureCache()

@@ -71,11 +71,35 @@ public final class Window {
     
     // MARK: - Method
     
+    internal func update() throws {
+        
+        if needsLayout {
+            layoutIfNeeded()
+            needsLayout = false
+            needsDisplay = true
+        }
+        
+        if needsDisplay {
+            try render()
+            needsDisplay = false
+        }
+        
+        
+    }
+    
     internal func sizeChanged() {
         
         self.view.frame = Frame(origin: .zero, size: size)
         self.needsLayout = true
         self.needsDisplay = true
+    }
+    
+    internal func layoutIfNeeded() {
+        
+        //viewController?.viewWillLayoutSubviews()
+        //layoutSubviews()
+        //subviews.forEach { $0.layoutIfNeeded() }
+        //viewController?.viewDidLayoutSubviews()
     }
     
     internal func view(for point: Point) -> View? {

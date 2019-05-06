@@ -81,9 +81,7 @@ public final class Application {
             
             // render
             for window in windows {
-                if window.needsDisplay {
-                    try window.render()
-                }
+                try window.update()
             }
             
             // sleep to save energy

@@ -96,4 +96,31 @@ public final class Application {
         
         self.isRunning = false
     }
+    
+    internal func send(event: Event) {
+        
+        switch event {
+        case .quit:
+            quit()
+        case let .window(windowEvent):
+            let window = self.window(for: windowEvent.window)
+            window.event(event)
+        case let .drop(dropEvent):
+            let window = self.window(for: dropEvent.window)
+            window.event(event)
+        case let .mouse(mouseEvent):
+            let window = self.window(for: mouseEvent.window)
+            window.event(event)
+        default:
+            break
+        }
+    }
+    
+    internal func window(for identifier: UInt) -> Window {
+        
+        guard let window = windows.first(where: { $0.identifier == identifier })
+            else { fatalError("Invalid window identifier \(identifier)") }
+        
+        return window
+    }
 }

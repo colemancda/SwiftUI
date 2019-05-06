@@ -16,12 +16,15 @@ public protocol EventProtocol {
 
 public enum Event {
     
+    case quit
+    case drop(Drop)
     case window(Window)
     case mouse(Mouse)
     //case touch
     //case keyboard
 }
 
+/*
 public extension Event {
     
     init?(rawValue: EventProtocol) {
@@ -52,6 +55,28 @@ public extension Event {
             return event
         }
     }
+}*/
+
+public extension Event {
+    
+    struct Drop {
+        
+        public let timestamp: UInt
+        
+        public let window: UInt
+        
+        public let phase: Phase
+    }
+}
+
+public extension Event.Drop {
+    
+    enum Phase {
+        
+        case begin
+        case file(String)
+        case complete
+    }
 }
 
 public extension Event {
@@ -66,9 +91,38 @@ public extension Event {
 
 public extension Event.Mouse {
     
+    var window: UInt {
+     
+        switch self {
+        case let .button(event):
+            return event.window
+        case let .motion(event):
+            return event.window
+        case let .wheel(event):
+            return event.window
+        }
+    }
+    
+    var location: Point? {
+        
+        switch self {
+        case let .button(event):
+            return event.location
+        case let .motion(event):
+            return event.location
+        case .wheel:
+            return nil
+        }
+    }
+}
+
+public extension Event.Mouse {
+    
     struct Button: EventProtocol {
         
         public let timestamp: UInt
+        
+        public let window: UInt
         
         public let location: Point
         
@@ -99,6 +153,8 @@ public extension Event.Mouse {
         
         public let timestamp: UInt
         
+        public let window: UInt
+        
         public let location: Point
         
         public let delta: Size
@@ -110,6 +166,8 @@ public extension Event.Mouse {
     struct Wheel: EventProtocol {
         
         public let timestamp: UInt
+        
+        public let window: UInt
         
         public let delta: Size
         
@@ -198,6 +256,15 @@ internal extension Event {
         let eventType = SDL_EventType(rawValue: sdlEvent.type)
         
         switch eventType {
+        case SDL_QUIT:
+            self = .quit
+        case SDL_DROPBEGIN,
+             SDL_DROPCOMPLETE,
+             SDL_DROPTEXT,
+             SDL_DROPFILE:
+            guard let event = Event.Drop(sdlEvent.drop)
+                else { return nil }
+            self = .drop(event)
         case SDL_WINDOWEVENT:
             guard let event = Event.Window(sdlEvent.window)
                 else { return nil }
@@ -225,8 +292,8 @@ internal extension Event.Window {
     
     init?(_ sdlEvent: SDL_WindowEvent) {
         
-        self.timestamp = UInt(sdlEvent.timestamp)
-        self.window = UInt(sdlEvent.windowID)
+        self.timestamp = numericCast(sdlEvent.timestamp)
+        self.window = numericCast(sdlEvent.windowID)
         let windowEvent = SDL_WindowEventID(rawValue: UInt32(sdlEvent.event))
         
         switch windowEvent {
@@ -270,8 +337,10 @@ internal extension Event.Mouse.Button {
     
     init?(_ sdlEvent: SDL_MouseButtonEvent) {
         
-        self.timestamp = UInt(sdlEvent.timestamp)
-        self.location = Point(x: Int(sdlEvent.x), y: Int(sdlEvent.y))
+        self.timestamp = numericCast(sdlEvent.timestamp)
+        self.window = numericCast(sdlEvent.windowID)
+        self.location = Point(x: numericCast(sdlEvent.x),
+                              y: numericCast(sdlEvent.y))
         
         let eventType = SDL_EventType(rawValue: sdlEvent.type)
         
@@ -305,8 +374,12 @@ internal extension Event.Mouse.Wheel {
     
     init?(_ sdlEvent: SDL_MouseWheelEvent) {
         
-        self.timestamp = UInt(sdlEvent.timestamp)
-        self.delta = Size(width: Int(sdlEvent.x), height: Int(sdlEvent.y))
+        self.timestamp = numericCast(sdlEvent.timestamp)
+        self.window = numericCast(sdlEvent.windowID)
+        self.delta = Size(
+            width: numericCast(sdlEvent.x),
+            height: numericCast(sdlEvent.y)
+        )
         
         switch SDL_MouseWheelDirection(rawValue: sdlEvent.direction) {
         case SDL_MOUSEWHEEL_NORMAL:
@@ -323,8 +396,36 @@ internal extension Event.Mouse.Motion {
     
     init?(_ sdlEvent: SDL_MouseMotionEvent) {
         
-        self.timestamp = UInt(sdlEvent.timestamp)
-        self.location = Point(x: Int(sdlEvent.x), y: Int(sdlEvent.y))
-        self.delta = Size(width: Int(sdlEvent.xrel), height: Int(sdlEvent.yrel))
+        self.timestamp = numericCast(sdlEvent.timestamp)
+        self.window = numericCast(sdlEvent.windowID)
+        self.location = Point(x: numericCast(sdlEvent.x),
+                              y: numericCast(sdlEvent.y))
+        self.delta = Size(width: numericCast(sdlEvent.xrel),
+                          height: numericCast(sdlEvent.yrel))
+    }
+}
+
+internal extension Event.Drop {
+    
+    init?(_ sdlEvent: SDL_DropEvent) {
+        
+        self.timestamp = numericCast(sdlEvent.timestamp)
+        self.window = numericCast(sdlEvent.windowID)
+        
+        let eventType = SDL_EventType(rawValue: sdlEvent.type)
+        switch eventType {
+        case SDL_DROPBEGIN:
+            self.phase = .begin
+        case SDL_DROPCOMPLETE:
+            self.phase = .complete
+        case SDL_DROPFILE:
+            let filePath = String(cString: sdlEvent.file)
+            defer { SDL_free(UnsafeMutableRawPointer(sdlEvent.file)) }
+            self.phase = .file(filePath)
+        case SDL_DROPTEXT:
+            return nil
+        default:
+            return nil
+        }
     }
 }

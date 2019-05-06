@@ -1,5 +1,5 @@
 //
-//  Texture.swift
+//  Layer.swift
 //  SwiftUI
 //
 //  Created by Alsey Coleman Miller on 4/20/19.

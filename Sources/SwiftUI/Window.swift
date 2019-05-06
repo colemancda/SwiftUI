@@ -53,7 +53,6 @@ public final class Window {
         )
         
         self.renderer = try SDLRenderer(window: window, options: [.accelerated])
-        try self.renderer.setDrawColor(red: 0x00, green: 0x00, blue: 0x00, alpha: 0xFF)
         
         self.view = View(frame:
             Frame(
@@ -76,5 +75,40 @@ public final class Window {
         self.view.frame = Frame(origin: .zero, size: size)
         self.needsLayout = true
         self.needsDisplay = true
+    }
+    
+    internal func view(for point: Point) -> View? {
+        
+        // FIXME
+        return nil
+    }
+}
+
+// MARK: - Responder
+
+extension Window: Responder {
+    
+    func event(_ event: Event) {
+        
+        switch event {
+        case let .window(windowEvent):
+            assert(self.identifier == windowEvent.window, "Event sent to wrong window")
+            switch windowEvent.type {
+            case .sizeChanged:
+                sizeChanged()
+            default:
+                break
+            }
+        case let .mouse(mouseEvent):
+            assert(self.identifier == mouseEvent.window, "Event sent to wrong window")
+            if let location = mouseEvent.location,
+                let view = self.view(for: location) {
+                view.event(event)
+            } else {
+                self.view.event(event)
+            }
+        default:
+            break
+        }
     }
 }

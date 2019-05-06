@@ -96,11 +96,4 @@ public final class Application {
         
         self.isRunning = false
     }
-    
-    internal func lowMemory() {
-        
-        for window in windows {
-            window.lowMemory()
-        }
-    }
 }

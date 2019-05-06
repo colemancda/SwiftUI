@@ -7,99 +7,70 @@
 
 import SDL
 
-public final class Layer {
+public final class Texture {
     
-    // MARK: - Properties
+    internal static var format: SDLPixelFormat.Format { return .argb8888 }  // SDL_PIXELFORMAT_ARGB8888
     
-    public var size: (width: Int, height: Int) {
-        return (texture.width, texture.height)
+    public var width: Int {
+        return attributes.width
     }
     
-    public var scale: Float {
-        return texture.scale
+    public var height: Int {
+        return attributes.height
     }
     
-    public var nativeSize: (width: Int, height: Int) {
-        return texture.nativeSize
+    internal let texture: SDLTexture
+    
+    internal let attributes: SDLTexture.Attributes
+    
+    internal init(width: Int,
+                  height: Int,
+                  renderer: SDLRenderer) throws {
+        
+        self.texture = try SDLTexture(
+            renderer: renderer,
+            format: Texture.format,
+            access: .streaming,
+            width: width,
+            height: height
+        )
+        
+        try self.texture.setBlendMode([.alpha])
+        self.attributes = try texture.attributes()
     }
     
-    internal private(set) var texture: Texture
-    
-    internal let renderer: SDLRenderer
-    
-    // MARK: - Initialization
-    
-    public init(width: Int, height: Int, scale: Float = 1.0, renderer: SDLRenderer) throws {
+    internal init(color: Color,
+                  renderer: SDLRenderer) throws {
         
-        self.renderer = renderer
-        self.texture = try Texture(width: width,
-                                   height: height,
-                                   scale: scale,
-                                   renderer: renderer)
-    }
-    
-    // MARK: - Methods
-    
-    internal func setSize(width: Int, height: Int) throws {
-        
-        self.texture = try Texture(width: width,
-                                   height: height,
-                                   scale: scale,
-                                   renderer: renderer)
-    }
-    
-    internal func setScale(_ scale: Float) throws {
-        
-        self.texture = try Texture(width: size.width,
-                                   height: size.height,
-                                   scale: scale,
-                                   renderer: renderer)
-    }
-    
-    internal func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
-        
-        return try texture.texture.withUnsafeMutableBytes(body)
-    }
-}
-
-internal extension Layer {
-    
-    final class Texture {
-        
-        public let width: Int
-        
-        public let height: Int
-        
-        public let scale: Float
-        
-        public let nativeSize: (width: Int, height: Int)
-        
-        internal let texture: SDLTexture
-        
-        public init(width: Int,
-                    height: Int,
-                    scale: Float = 1.0,
-                    renderer: SDLRenderer) throws {
-            
-            self.width = width
-            self.height = height
-            self.scale = scale
-            let nativeSize = (width: Int(Float(width) * scale),
-                              height: Int(Float(height) * scale))
-            self.nativeSize = nativeSize
-            self.texture = try SDLTexture(
-                renderer: renderer,
-                format: .argb8888, // SDL_PIXELFORMAT_ARGB8888
-                access: .streaming,
-                width: nativeSize.width,
-                height: nativeSize.height
+        let width = 1
+        let height = 1
+        let surface = try SDLSurface(
+            rgb: (0,0,0,0),
+            size: (width: width, height: height),
+            depth: 32
+        )
+        try surface.fill(color:
+            SDLColor(
+                format: SDLPixelFormat(format: .argb8888),
+                red: color.red,
+                green: color.green,
+                blue: color.blue,
+                alpha: color.alpha
             )
-            try texture.setBlendMode([.alpha])
-        }
+        )
+        self.texture = try SDLTexture(
+            renderer: renderer,
+            surface: surface
+        )
         
-        public func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
-            
-            return try texture.withUnsafeMutableBytes(body)
-        }
+        try self.texture.setBlendMode([.alpha])
+        self.attributes = try texture.attributes()
+    }
+    
+    public func withUnsafeMutableBytes <Result> (_ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
+        
+        assert(try! texture.attributes().access == .streaming)
+        
+        return try texture.withUnsafeMutableBytes(body)
     }
 }

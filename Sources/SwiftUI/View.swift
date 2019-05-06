@@ -14,40 +14,55 @@ open class View {
     
     public var frame: Frame
     
-    public var subviews = [View]()
+    public private(set) var subviews = [View]()
+    
+    public private(set) weak var superView: View?
     
     public var backgroundColor: Color = .white
     
-    internal let layerCache = LayerCache()
+    internal let textureCache = TextureCache()
     
     // MARK: - Initialization
     
     public init(frame: Frame = .zero) {
-        
         self.frame = frame
     }
-}
-
-internal final class LayerCache {
     
-    internal init() { }
+    // MARK: - Methods
     
-    // 1x1 layer for background color texture
-    var backgroundColorLayer: Layer?
-    
-    var drawableLayer: Layer?
-}
-
-internal extension Layer {
-    
-    convenience init(color: Color, renderer: SDLRenderer) throws {
+    public func addSubview(_ view: View) {
         
-        try self.init(width: 1, height: 1, scale: 1, renderer: renderer)
-        self.texture
+        self.subviews.append(view)
+        view.superView = self
+    }
+    
+    public func removeFromSuperview() {
+        
+        self.superView?.subviews.removeAll(where: { $0 === self })
     }
 }
 
-protocol Drawable {
+internal extension View {
     
-    func draw(with layer: Layer)
+    final class TextureCache {
+        
+        fileprivate init() { }
+        
+        // 1x1 layer for background color texture
+        var backgroundColor: Texture?
+        
+        // for draw operations, native size of view
+        var drawable: Texture?
+    }
+}
+
+open class DrawableView: View {
+    
+    open func draw(with texture: Texture) {
+        assertionFailure("Should override in subclass \(DrawableView.self)")
+    }
+    
+    open func canvasSize(for window: Window) -> Size {
+        return window.nativeSize
+    }
 }

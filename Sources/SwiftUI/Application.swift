@@ -79,6 +79,13 @@ public final class Application {
             let maximumFrameDuration = 1.0 / TimeInterval(maximumFramesPerSecond)
             runloop.run(mode: .default, before: frameStart + maximumFrameDuration)
             
+            // render
+            for window in windows {
+                if window.needsDisplay {
+                    try window.render()
+                }
+            }
+            
             // sleep to save energy
             let frameDuration = SDL_GetTicks() - startTime
             if frameDuration < maximumFrameTime {
@@ -111,8 +118,6 @@ public final class Application {
         case let .mouse(mouseEvent):
             let window = self.window(for: mouseEvent.window)
             window.event(event)
-        default:
-            break
         }
     }
     

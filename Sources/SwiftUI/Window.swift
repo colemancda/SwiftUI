@@ -5,6 +5,7 @@
 //  Created by Alsey Coleman Miller on 4/20/19.
 //
 
+import CSDL2
 import SDL
 
 public final class Window {
@@ -81,6 +82,38 @@ public final class Window {
         
         // FIXME
         return nil
+    }
+    
+    internal func render() throws {
+        
+        try renderer.setDrawColor(red: 0x00, green: 0x00, blue: 0x00, alpha: 0xFF)
+        try renderer.clear()
+        try render(view: view, origin: .zero)
+        renderer.present()
+    }
+    
+    internal func render(view: View, origin: Point) throws {
+        
+        guard view.shouldRender
+            else { return }
+        
+        // add translation
+        //context.translate(x: view.frame.x, y: view.frame.y)
+        var relativeOrigin = origin
+        relativeOrigin.x += Int(Float(view.frame.origin.x) * scale)
+        relativeOrigin.y += Int(Float(view.frame.origin.y) * scale)
+        
+        // frame of view relative to SDL window
+        let rect = SDL_Rect(x: Int32(relativeOrigin.x),
+                            y: Int32(relativeOrigin.y),
+                            w: Int32(Float(view.frame.size.width) * scale),
+                            h: Int32(Float(view.frame.size.height) * scale))
+        
+        // render view
+        try view.render(in: rect, for: self)
+        
+        // render subviews
+        try view.subviews.forEach { try render(view: $0, origin: relativeOrigin) }
     }
 }
 

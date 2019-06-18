@@ -21,6 +21,9 @@ open class View {
     
     public private(set) weak var superview: View?
     
+    /// This view is the main view of the specified view controller.
+    internal weak var viewController: ViewController?
+    
     /// The root view in the hierarchy.
     private var rootSuperview: View {
         

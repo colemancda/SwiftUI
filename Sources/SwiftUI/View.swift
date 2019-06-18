@@ -25,7 +25,7 @@ open class View {
     
     public var window: Window? {
         
-        return _window ?? superview?._window
+        return _window ?? superview?.window
     }
     
     public var backgroundColor: Color = .white {
@@ -70,7 +70,10 @@ open class View {
     
     public func setNeedsDisplay() {
         
-        self.window?.needsDisplay = true
+        guard let window = self.window
+            else { return } // no attached to window
+        
+        window.needsDisplay = true
     }
     
     open func canvasSize(for window: Window) -> Size {

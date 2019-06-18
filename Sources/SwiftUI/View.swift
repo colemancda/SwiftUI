@@ -82,6 +82,7 @@ open class View {
     }
     
     internal var shouldRender: Bool {
+        
         return isHidden == false
             && alpha > 0
             && frame.size.width >= 1
@@ -95,17 +96,20 @@ open class View {
         let renderer = window.renderer
         
         // draw background texture
-        let backgroundTexture: Texture
-        if let (color, cachedTexture) = textureCache.backgroundColor,
-            color == backgroundColor {
-            backgroundTexture = cachedTexture
+        if backgroundColor == .clear {
+            self.textureCache.backgroundColor = nil // optimization
         } else {
-            backgroundTexture = try Texture(color: backgroundColor, renderer: renderer)
-            self.textureCache.backgroundColor = (backgroundColor, backgroundTexture)
+            let backgroundTexture: Texture
+            if let (color, cachedTexture) = textureCache.backgroundColor,
+                color == backgroundColor {
+                backgroundTexture = cachedTexture
+            } else {
+                backgroundTexture = try Texture(color: backgroundColor, renderer: renderer)
+                self.textureCache.backgroundColor = (backgroundColor, backgroundTexture)
+            }
+            
+            try renderer.render(backgroundTexture, alpha: alpha, in: rect, for: window)
         }
-        
-        try backgroundTexture.texture.setAlphaModulation(UInt8(alpha * 255))
-        try renderer.copy(backgroundTexture.texture, destination: rect)
         
         // reuse cached drawable texture if view hasn't been resized.
         if let drawable = self as? DrawableView {
@@ -126,9 +130,17 @@ open class View {
             
             drawable.draw(with: drawableTexture)
             
-            try drawableTexture.texture.setAlphaModulation(UInt8(alpha * 255))
-            try renderer.copy(drawableTexture.texture, destination: rect)
+            try renderer.render(drawableTexture, alpha: alpha, in: rect, for: window)
         }
+    }
+}
+
+extension SDLRenderer {
+    
+    func render(_ texture: Texture, alpha: Float, in rect: SDL_Rect, for window: Window) throws {
+        
+        try texture.texture.setAlphaModulation(UInt8(alpha * 255))
+        try copy(texture.texture, destination: rect)
     }
 }
 

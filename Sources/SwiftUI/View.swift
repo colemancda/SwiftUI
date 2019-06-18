@@ -21,11 +21,17 @@ open class View {
     
     public private(set) weak var superview: View?
     
-    internal var _window: Window?
-    
-    public var window: Window? {
+    /// The root view in the hierarchy.
+    private var rootSuperview: View {
         
-        return _window ?? superview?.window
+        return superview?.rootSuperview ?? self
+    }
+    
+    internal var window: Window?
+    
+    internal var rootWindow: Window? {
+        
+        return window ?? superview?.rootWindow
     }
     
     public var backgroundColor: Color = .white {
@@ -70,17 +76,19 @@ open class View {
     
     public func setNeedsDisplay() {
         
-        guard let window = self.window
+        guard let window = self.rootWindow
             else { return } // no attached to window
         
         window.needsDisplay = true
     }
     
-    open func canvasSize(for window: Window) -> Size {
+    open var canvasSize: Size {
+        
+        let scale = rootWindow?.scale ?? 1.0
         
         return Size(
-            width: Int(Float(frame.size.width) * window.scale),
-            height: Int(Float(frame.size.height) * window.scale)
+            width: Int(Float(frame.size.width) * scale),
+            height: Int(Float(frame.size.height) * scale)
         )
     }
     
@@ -90,7 +98,7 @@ open class View {
         
         return (point.x >= rect.minX && point.x <= rect.maxX)
             && (point.y >= rect.minY && point.y <= rect.maxY)
-    }/*
+    }
     
     internal func hitTest(_ point: Point) -> View? {
         
@@ -103,7 +111,7 @@ open class View {
             // convert point for subviews
             let subviewPoint = self.convert(point, to: subview)
             
-            guard let descendant = subview.hitTest(subviewPoint, with: event)
+            guard let descendant = subview.hitTest(subviewPoint)
                 else { continue }
             
             return descendant
@@ -121,12 +129,34 @@ open class View {
         assert(view.rootSuperview === rootSuperview, "Both views must descend from same root super view or window")
         
         // get origin offset for both views
-        let offset = rootSuperview.offset(for: self)!
-        let viewOffset = rootSuperview.offset(for: view)!
+        let offset = rootSuperview.offset(for: self, offset: .zero)!
+        let viewOffset = rootSuperview.offset(for: view, offset: .zero)!
         let delta = Size(width: offset.width - viewOffset.width, height: offset.height - viewOffset.height)
         
         return Point(x: point.x + delta.width, y: point.y + delta.height)
-    }*/
+    }
+    
+    private func offset(for subview: View, offset: Size) -> Size? {
+        
+        var offset = offset
+        
+        // add delta
+        offset.width += frame.origin.x
+        offset.height += frame.origin.y
+        
+        guard subview !== self
+            else { return offset }
+        
+        for view in subviews {
+            
+            guard let foundOffset = view.offset(for: subview, offset: offset)
+                else { continue }
+            
+            return foundOffset
+        }
+        
+        return nil
+    }
     
     internal var shouldRender: Bool {
         
@@ -161,7 +191,7 @@ open class View {
         // reuse cached drawable texture if view hasn't been resized.
         if let drawable = self as? DrawableView {
             
-            let canvasSize = self.canvasSize(for: window)
+            let canvasSize = self.canvasSize
             let drawableTexture: Texture
             
             if let cachedTexture = self.textureCache.drawable,
@@ -209,7 +239,7 @@ public protocol DrawableView: class {
     
     func draw(with texture: Texture)
     
-    func canvasSize(for window: Window) -> Size
+    var canvasSize: Size { get }
 }
 
 internal extension View {

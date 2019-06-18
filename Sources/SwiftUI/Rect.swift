@@ -5,7 +5,7 @@
 //  Created by Alsey Coleman Miller on 4/22/19.
 //
 
-public struct Frame: Equatable, Hashable {
+public struct Rect: Equatable, Hashable {
     
     public var origin: Point
     
@@ -18,9 +18,15 @@ public struct Frame: Equatable, Hashable {
     }
 }
 
-public extension Frame {
+public extension Rect {
     
-    static var zero: Frame { return Frame(origin: .zero, size: .zero) }
+    static var zero: Rect { return Rect(origin: .zero, size: .zero) }
+    
+    var minX: Int { return self.origin.x + min(self.size.width, 0) }
+    var maxX: Int { return self.origin.x + max(self.size.width, 0) }
+    
+    var minY: Int { return self.origin.y + min(self.size.height, 0) }
+    var maxY: Int { return self.origin.y + max(self.size.height, 0) }
 }
 
 public struct Point: Equatable, Hashable {

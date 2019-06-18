@@ -56,7 +56,7 @@ public final class Window {
         self.renderer = try SDLRenderer(window: window, options: [.accelerated])
         
         self.view = View(frame:
-            Frame(
+            Rect(
                 origin: .zero,
                 size: Size(
                     width: frame.width,
@@ -84,13 +84,11 @@ public final class Window {
             try render()
             needsDisplay = false
         }
-        
-        
     }
     
     internal func sizeChanged() {
         
-        self.view.frame = Frame(origin: .zero, size: size)
+        self.view.frame = Rect(origin: .zero, size: size)
         self.needsLayout = true
         self.needsDisplay = true
     }

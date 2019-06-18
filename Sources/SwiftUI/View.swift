@@ -13,7 +13,7 @@ open class View {
     
     // MARK: - Properties
     
-    public var frame: Frame {
+    public var frame: Rect {
         didSet { setNeedsDisplay() }
     }
     
@@ -47,7 +47,7 @@ open class View {
     
     // MARK: - Initialization
     
-    public init(frame: Frame = .zero) {
+    public init(frame: Rect = .zero) {
         self.frame = frame
     }
     
@@ -83,6 +83,50 @@ open class View {
             height: Int(Float(frame.size.height) * window.scale)
         )
     }
+    
+    internal func point(inside point: Point) -> Bool {
+        
+        let rect = Rect(origin: .zero, size: frame.size)
+        
+        return (point.x >= rect.minX && point.x <= rect.maxX)
+            && (point.y >= rect.minY && point.y <= rect.maxY)
+    }/*
+    
+    internal func hitTest(_ point: Point) -> View? {
+        
+        guard isHidden == false,
+            self.point(inside: point)
+            else { return nil }
+        
+        for subview in subviews.reversed() {
+            
+            // convert point for subviews
+            let subviewPoint = self.convert(point, to: subview)
+            
+            guard let descendant = subview.hitTest(subviewPoint, with: event)
+                else { continue }
+            
+            return descendant
+        }
+        
+        return self
+    }
+    
+    internal func convert(_ point: Point, to view: View?) -> Point {
+        
+        let rootSuperview = self.rootSuperview
+        
+        let view = view ?? rootSuperview
+        
+        assert(view.rootSuperview === rootSuperview, "Both views must descend from same root super view or window")
+        
+        // get origin offset for both views
+        let offset = rootSuperview.offset(for: self)!
+        let viewOffset = rootSuperview.offset(for: view)!
+        let delta = Size(width: offset.width - viewOffset.width, height: offset.height - viewOffset.height)
+        
+        return Point(x: point.x + delta.width, y: point.y + delta.height)
+    }*/
     
     internal var shouldRender: Bool {
         

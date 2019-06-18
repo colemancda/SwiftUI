@@ -64,6 +64,7 @@ public final class Window {
                 )
             )
         )
+        self.view._window = self
         
         // inform app
         Application.shared.windowCreated(self)

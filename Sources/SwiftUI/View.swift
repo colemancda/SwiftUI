@@ -13,16 +13,30 @@ open class View {
     
     // MARK: - Properties
     
-    public var frame: Frame
+    public var frame: Frame {
+        didSet { setNeedsDisplay() }
+    }
     
     public private(set) var subviews = [View]()
     
     public private(set) weak var superview: View?
     
-    public var backgroundColor: Color = .white
+    internal var _window: Window?
+    
+    public var window: Window? {
+        
+        return _window ?? superview?._window
+    }
+    
+    public var backgroundColor: Color = .white {
+        didSet { setNeedsDisplay() }
+    }
     
     public var alpha: Float = 1.0 {
-        didSet { assert(alpha >= 0.0 && alpha <= 1.0, "Invalid alpha \(alpha)") }
+        didSet {
+            assert(alpha >= 0.0 && alpha <= 1.0, "Invalid alpha \(alpha)")
+            setNeedsDisplay()
+        }
     }
     
     public var isHidden: Bool {
@@ -47,10 +61,20 @@ open class View {
     
     public func removeFromSuperview() {
         
-        self.superview?.subviews.removeAll(where: { $0 === self })
+        guard let superview = self.superview,
+            let index = superview.subviews.firstIndex(where: { $0 === self })
+            else { return }
+        
+        superview.subviews.remove(at: index)
+    }
+    
+    public func setNeedsDisplay() {
+        
+        self.window?.needsDisplay = true
     }
     
     open func canvasSize(for window: Window) -> Size {
+        
         return Size(
             width: Int(Float(frame.size.width) * window.scale),
             height: Int(Float(frame.size.height) * window.scale)

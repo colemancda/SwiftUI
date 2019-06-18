@@ -15,9 +15,9 @@ Application.shared.didLaunch = {
     subview2.alpha = 0.60
     subview.addSubview(subview2)
     
-    class Button: View {
+    class Button: View, Responder {
         
-        override func event(_ event: Event) {
+        func event(_ event: Event) {
             
             switch event {
             case let .mouse(.button(buttonEvent)):

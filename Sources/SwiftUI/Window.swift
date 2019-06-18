@@ -103,8 +103,7 @@ public final class Window {
     
     internal func view(for point: Point) -> View? {
         
-        // FIXME
-        return nil
+        return self.view.hitTest(point)
     }
     
     internal func render() throws {
@@ -159,9 +158,9 @@ extension Window: Responder {
             assert(self.identifier == mouseEvent.window, "Event sent to wrong window")
             if let location = mouseEvent.location,
                 let view = self.view(for: location) {
-                view.event(event)
+                (view as? Responder)?.event(event)
             } else {
-                self.view.event(event)
+                (self.view as? Responder)?.event(event)
             }
         default:
             break

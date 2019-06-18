@@ -82,6 +82,13 @@ open class View {
         window.needsDisplay = true
     }
     
+    open func event(_ event: Event) {
+        
+        subviews.forEach {
+            $0.event(event)
+        }
+    }
+    
     open var canvasSize: Size {
         
         let scale = rootWindow?.scale ?? 1.0
@@ -223,15 +230,7 @@ extension SDLRenderer {
 
 // MARK: - Responder
 
-extension View: Responder {
-    
-    open func event(_ event: Event) {
-        
-        subviews.forEach {
-            $0.event(event)
-        }
-    }
-}
+extension View: Responder { }
 
 // MARK: - Supporting Types
 

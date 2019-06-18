@@ -144,7 +144,7 @@ public final class Window {
 
 extension Window: Responder {
     
-    func event(_ event: Event) {
+    public func event(_ event: Event) {
         
         switch event {
         case let .window(windowEvent):

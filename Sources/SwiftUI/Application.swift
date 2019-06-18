@@ -52,6 +52,8 @@ public final class Application {
         
         var sdlEvent = SDL_Event()
         
+        var events = [Event]()
+        
         while isRunning {
             
             let startTime = SDL_GetTicks()
@@ -71,9 +73,12 @@ public final class Application {
             var shouldPoll = true
             while SDL_GetTicks() - startTime < maximumFrameTime, shouldPoll {
                 shouldPoll = SDL_PollEvent(&sdlEvent) != 0
-                //eventEnvironment.recieveEvent(&sdlEvent)
+                if let event = Event(sdlEvent) {
+                    events.append(event)
+                }
             }
-            //eventEnvironment.dispatchEvents()
+            events.forEach { send(event: $0) }
+            events.removeAll(keepingCapacity: true)
             
             // run main loop
             let maximumFrameDuration = 1.0 / TimeInterval(maximumFramesPerSecond)
